@@ -1,6 +1,4 @@
 import requests
-import urllib.request
-import time
 from bs4 import BeautifulSoup
 import yfinance as yf
 
@@ -24,11 +22,11 @@ def mostLoss():
     return name.string
 
 def currentPrice(symbol):
-    if symbol == "DAVID":
+    if str.upper(symbol) == "DAVID":
         return "FREE"
     try:
         ticker = yf.Ticker(symbol)
         data = ticker.history(period='1d')
-        return data['Close'][0]
+        return round(data['Close'][0], 2)
     except:
         return "could not find symbol"

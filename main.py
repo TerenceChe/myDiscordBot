@@ -3,13 +3,14 @@
 import discord
 import os
 from stockInfo import *
+from datetime import datetime
+
 
 client = discord.Client()
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-
 
 @client.event
 async def on_message(message):
@@ -28,8 +29,21 @@ async def on_message(message):
     if message.content.startswith('$$ mostloss'):
         await message.channel.send(mostLoss())
 
+    # TODO: fix/improve  how the symbol is parsed
     if message.content.startswith('$$ price '):
-        await message.channel.send(currentPrice(message.content[9:]))
+        price = currentPrice(message.content[9:])
+        ret = str.upper(message.content[9:]) + ": $" + str(price)
+
+        time = datetime.now()
+        currTime = time
+        closeTime = time.replace(hour = 16, minute = 0, second = 0, microsecond = 0)
+        openTime = time.replace(hour = 9, minute = 30, second = 0, microsecond = 0)
+
+        if currTime > closeTime or currTime < openTime:
+            ret += " (price at close)"
+        else:
+            ret += " (current price)"
+        await message.channel.send(ret)
 
 
 client.run(os.getenv('TOKEN'))
