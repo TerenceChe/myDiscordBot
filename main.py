@@ -1,9 +1,11 @@
 # https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
 
+from datetime import datetime
 import discord
+from embed import *
 import os
 from stockInfo import *
-from datetime import datetime
+
 
 client = discord.Client()
 
@@ -25,8 +27,7 @@ async def on_message(message):
 
     # gives the command to play David's playlist
     if message.content.startswith('$$ david'):
-        await message.channel.send(
-            '-p https://open.spotify.com/playlist/2pOCpGDfekUKDN6Mzr1NGi')
+        await message.channel.send('-p https://open.spotify.com/playlist/2pOCpGDfekUKDN6Mzr1NGi')
 
     if message.content.startswith('$$ mostgain'):
         await message.channel.send(mostGain())
@@ -36,7 +37,7 @@ async def on_message(message):
 
     # TODO: fix/improve  how the symbol is parsed
     if message.content.startswith('$$ price '):
-        symbol = message.content[9:]
+        symbol = message.content.split()[2]
         price = currentPrice(symbol)
         if price == None:
             await message.channel.send("symbol not found")
@@ -55,9 +56,11 @@ async def on_message(message):
         else:
             msg += " (price at close)"
 
-        msg += "\n" + oneDayPriceChange(symbol) + " (%" + str(changePercent(symbol)) + ")"
+        msg += "\n" + str(oneDayPriceChange(symbol)) + " (%" + str(changePercent(symbol)) + ")"
         await message.channel.send(msg)
 
-
+    if message.content.startswith('$$ embed'):
+        print(message)
+        await message.channel.send(embed = embedMessage(message))
 
 client.run(os.getenv('TOKEN'))
