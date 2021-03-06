@@ -7,15 +7,12 @@ import os
 from stockInfo import *
 
 
+
 client = discord.Client()
-
-print(changePercent('aal'))
-
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-
 
 @client.event
 async def on_message(message):
@@ -43,8 +40,6 @@ async def on_message(message):
             await message.channel.send("symbol not found")
             return
 
-        msg = str.upper(symbol) + ": $" + str(price)
-
         time = datetime.now()
         date = datetime.today().weekday()
         currTime = time
@@ -52,11 +47,14 @@ async def on_message(message):
         openTime = time.replace(hour=14, minute=30, second=0, microsecond=0)
 
         if currTime > openTime and currTime < closeTime and date != 6 and date != 5:
-            msg += " (current price)"
+            marketStatus = " (current price)"
         else:
-            msg += " (price at close)"
+            marketStatus= " (price at close)"
 
-        msg += "\n" + str(oneDayPriceChange(symbol)) + " (%" + str(changePercent(symbol)) + ")"
+        change = oneDayPriceChange(symbol)
+        percentDiff = changePercent(symbol)
+
+        msg = "{}: ${} {} \n {} (%{})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
         await message.channel.send(msg)
 
     if message.content.startswith('$$ embed'):
