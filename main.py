@@ -1,5 +1,5 @@
 # https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
-
+import os
 from database import *
 import datetime
 import discord
@@ -71,4 +71,4 @@ async def on_message(message):
         print(message)
         await message.channel.send(embed=embedMessage(message))
 
-client.run("ODExODM4ODkxNjkzOTY1MzEz.YC4B4w.PhRhw7USSUIDiAOm_H7aPPvok2o")
+client.run(os.getenv('TOKEN'))

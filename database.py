@@ -1,7 +1,7 @@
 import pymongo
+import os
 
-client = pymongo.MongoClient(
-    "mongodb+srv://terence_1:terence_1@cluster0.xnv8m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+client = pymongo.MongoClient(os.getenv("MONGODB_SERVER"))
 database = client["mydatabase"]
 balance_collection = database["balance"]
 share_collection = database["shares"]
