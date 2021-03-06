@@ -21,7 +21,7 @@ def user_balance(uid):
     balance_collection.insert_one(new_user)
     return 1000000
 
-
+# TODO : remove money from balance after purchase
 def add_stock(uid, stock, shares, price):
     balance = user_balance(uid)
 
@@ -29,12 +29,13 @@ def add_stock(uid, stock, shares, price):
     if balance > (price * shares):
 
         # if they already have the stock, update the table entry
-
-        share_collection.update_one({'uid': uid, 'stock': stock}, {'$inc': {'amount': shares}})
+        try:
+            share_collection.update_one({'uid': uid, 'stock': stock}, {'$inc': {'amount': shares}})
 
         # create a new entry if there is none yet
-        entry = {"uid": uid, "stock": stock, "amount": shares}
-        share_collection.insert_one(entry)
+        except:
+            entry = {"uid": uid, "stock": stock, "amount": shares}
+            share_collection.insert_one(entry)
 
         return True
     else:

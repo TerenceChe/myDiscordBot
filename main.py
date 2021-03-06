@@ -62,9 +62,10 @@ async def on_message(message):
         symbol = msg[2]
         amount = int(msg[3])
         price = current_price(symbol)
-        add_stock(message.author.id, symbol, amount, price)
-
-        msg = "successfully purchased {} shares of {}".format(amount, str.upper(symbol))
+        if(add_stock(message.author.id, symbol, amount, price)):
+            msg = "successfully purchased {} shares of {}".format(amount, str.upper(symbol))
+        else:
+            msg = "not enough money to purchase stock"
         await message.channel.send(msg)
 
     if message.content.startswith('$$ embed'):
