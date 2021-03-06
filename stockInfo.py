@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import sys
 
-def mostGain():
+
+def most_gain():
     url = 'https://finance.yahoo.com/gainers/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -13,7 +14,7 @@ def mostGain():
     return name.string
 
 
-def mostLoss():
+def most_loss():
     url = 'https://finance.yahoo.com/losers/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -22,44 +23,43 @@ def mostLoss():
     name = mostLoss.a
     return name.string
 
-def prevClosePrice(symbol):
-    try:
-      ticker = yf.Ticker(symbol)
-      data = ticker.history(period='2d')
-      return data['Close'][0]
-    except:
-      return print("Unexpected error:", sys.exc_info()[0])
-      raise
 
-def currentPrice(symbol):
+def prev_close_price(symbol):
+    try:
+        ticker = yf.Ticker(symbol)
+        data = ticker.history(period='2d')
+        return data['Close'][0]
+    except:
+        return print("Unexpected error:", sys.exc_info()[0])
+
+
+def current_price(symbol):
     try:
         ticker = yf.Ticker(symbol)
         data = ticker.history(period='1d')
-        return round(data['Close'][0], 2)
+        return data['Close'][0]
     except:
         return print("Unexpected error:", sys.exc_info()[0])
-        raise
 
 
-def oneDayPriceChange(symbol):
+def one_day_price_change(symbol):
     try:
-        change = currentPrice(symbol) - prevClosePrice(symbol)
+        change = current_price(symbol) - prev_close_price(symbol)
     except:
         return print("Unexpected error:", sys.exc_info()[0])
-        raise
 
     change = round(change, 2)
     if change > 0:
         change = "+" + str(change)
     return change
 
-def changePercent(symbol):
+
+def change_percent(symbol):
     try:
-        change = float(oneDayPriceChange(symbol))
-        price = prevClosePrice(symbol)
+        change = float(one_day_price_change(symbol))
+        price = prev_close_price(symbol)
     except:
         return print("Unexpected error:", sys.exc_info()[0])
-        raise
 
     percent = change / price
     percent *= 100

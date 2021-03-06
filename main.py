@@ -1,18 +1,18 @@
 # https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
 
-from datetime import datetime
+from database import *
+import datetime
 import discord
 from embed import *
-import os
 from stockInfo import *
 
-
-
 client = discord.Client()
+
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+
 
 @client.event
 async def on_message(message):
@@ -27,38 +27,48 @@ async def on_message(message):
         await message.channel.send('-p https://open.spotify.com/playlist/2pOCpGDfekUKDN6Mzr1NGi')
 
     if message.content.startswith('$$ mostgain'):
-        await message.channel.send(mostGain())
+        await message.channel.send(most_gain())
 
     if message.content.startswith('$$ mostloss'):
-        await message.channel.send(mostLoss())
+        await message.channel.send(most_loss())
 
     # TODO: fix/improve  how the symbol is parsed
     if message.content.startswith('$$ price '):
         symbol = message.content.split()[2]
-        price = currentPrice(symbol)
-        if price == None:
+        price = current_price(symbol)
+        if price is None:
             await message.channel.send("symbol not found")
             return
 
-        time = datetime.now()
-        date = datetime.today().weekday()
-        currTime = time
-        closeTime = time.replace(hour=21, minute=0, second=0, microsecond=0)
-        openTime = time.replace(hour=14, minute=30, second=0, microsecond=0)
+        time = datetime.datetime.now()
+        date = datetime.datetime.today().weekday()
+        curr_time = time
+        close_time = time.replace(hour=21, minute=0, second=0, microsecond=0)
+        open_time = time.replace(hour=14, minute=30, second=0, microsecond=0)
 
-        if currTime > openTime and currTime < closeTime and date != 6 and date != 5:
+        if open_time < curr_time < close_time and date != 6 and date != 5:
             marketStatus = " (current price)"
         else:
-            marketStatus= " (price at close)"
+            marketStatus = " (price at close)"
 
-        change = oneDayPriceChange(symbol)
-        percentDiff = changePercent(symbol)
+        change = one_day_price_change(symbol)
+        percentDiff = change_percent(symbol)
 
-        msg = "{}: ${} {} \n {} (%{})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
+        msg = "{0}: ${1:.2f} {2} \n {3} (%{4})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
+        await message.channel.send(msg)
+
+    if message.content.startswith('$$ buy'):
+        msg = message.content.split()
+        symbol = msg[2]
+        amount = int(msg[3])
+        price = current_price(symbol)
+        add_stock(message.author.id, symbol, amount, price)
+
+        msg = "successfully purchased {} shares of {}".format(amount, str.upper(symbol))
         await message.channel.send(msg)
 
     if message.content.startswith('$$ embed'):
         print(message)
-        await message.channel.send(embed = embedMessage(message))
+        await message.channel.send(embed=embedMessage(message))
 
-client.run(os.getenv('TOKEN'))
+client.run("ODExODM4ODkxNjkzOTY1MzEz.YC4B4w.PhRhw7USSUIDiAOm_H7aPPvok2o")
