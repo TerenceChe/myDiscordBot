@@ -1,8 +1,7 @@
 # https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
-import os
+
 from database import *
 import datetime
-import discord
 from embed import *
 from stockInfo import *
 
@@ -32,7 +31,7 @@ async def on_message(message):
     if message.content.startswith('$$ mostloss'):
         await message.channel.send(most_loss())
 
-    # TODO: fix/improve  how the symbol is parsed
+    # TODO: fix/improve how the symbol is parsed
     if message.content.startswith('$$ price '):
         symbol = message.content.split()[2]
         price = current_price(symbol)

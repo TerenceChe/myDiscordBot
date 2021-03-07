@@ -8,7 +8,7 @@ share_collection = database["shares"]
 
 
 def user_balance(uid):
-    ids = balance_collection.find({}, {'uid': 1, 'balance': 1})
+    ids = balance_collection.find({'uid': uid}, {'uid': 1, 'balance': 1})
 
     # check if user is in collection
     for n in ids:
@@ -21,7 +21,7 @@ def user_balance(uid):
     balance_collection.insert_one(new_user)
     return 1000000
 
-# TODO : remove money from balance after purchase
+
 def add_stock(uid, stock, shares, price):
     balance = user_balance(uid)
 
@@ -29,14 +29,16 @@ def add_stock(uid, stock, shares, price):
     if balance > (price * shares):
 
         # if they already have the stock, update the table entry
-        try:
+        entries = share_collection.find({'uid': uid, 'stock': stock}, {'uid': 1, 'stock': 1})
+        if entries.count() > 1:
             share_collection.update_one({'uid': uid, 'stock': stock}, {'$inc': {'amount': shares}})
 
         # create a new entry if there is none yet
-        except:
+        else:
             entry = {"uid": uid, "stock": stock, "amount": shares}
             share_collection.insert_one(entry)
 
+        balance_collection.update_one({'uid': uid}, {'$inc': {'balance': -(price * shares)}})
         return True
     else:
         return False
