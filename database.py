@@ -6,8 +6,10 @@ database = client["mydatabase"]
 balance_collection = database["balance"]
 share_collection = database["shares"]
 
+
 class NoStockError(Exception):
     pass
+
 
 def user_balance(uid):
     entries = balance_collection.find({'uid': uid}, {'uid': 1, 'balance': 1})
@@ -22,6 +24,10 @@ def user_balance(uid):
     new_user = {'uid': uid, 'balance': 1000000}
     balance_collection.insert_one(new_user)
     return 1000000
+
+
+def owned_stock_cursor(uid):
+    return share_collection.find({'uid': uid}, {'uid': 1, 'stock': 1, 'amount': 1})
 
 
 def add_stock(uid, stock, shares, price):

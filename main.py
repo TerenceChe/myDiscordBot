@@ -21,17 +21,23 @@ async def on_message(message):
 
     message.content = str.lower(message.content)
 
-    # gives the command to play David's playlist
+    # gives the command which plays David's playlist
     if message.content.startswith('$$ david'):
         await message.channel.send('-p https://open.spotify.com/playlist/2pOCpGDfekUKDN6Mzr1NGi')
+        return
 
-    elif message.content.startswith('$$ mostgain'):
+    # check which stock gained the most
+    elif message.content.startswith('$$ mostgain') or message.content.startswith('$$ most gain'):
         await message.channel.send(most_gain())
+        return
 
-    elif message.content.startswith('$$ mostloss'):
+    # check which stock loss the most
+    elif message.content.startswith('$$ mostloss') or message.content.startswith('$$ most loss'):
         await message.channel.send(most_loss())
+        return
 
     # TODO: fix/improve how the symbol is parsed
+    # check price of a particular stock
     elif message.content.startswith('$$ price '):
         symbol = message.content.split()[2]
         price = current_price(symbol)
@@ -55,39 +61,68 @@ async def on_message(message):
 
         msg = "{0}: ${1:.2f} {2} \n {3} (%{4})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
         await message.channel.send(msg)
+        return
 
-    elif message.content.startswith('$$ buy'):
+    # buy shares of a stock
+    elif message.content.startswith('$$ buy '):
         msg = message.content.split()
-        symbol = msg[2]
-        amount = int(msg[3])
+        symbol = msg[3]
+        amount = int(msg[2])
         price = current_price(symbol)
         if add_stock(message.author.id, symbol, amount, price):
-            msg = "successfully purchased {} shares of {}".format(amount, str.upper(symbol))
+            msg = "successfully purchased {0} shares of {1} for a total of: ${2:.2f}".format(
+                amount, str.upper(symbol), price * amount)
+
         else:
             msg = "not enough money to purchase stock"
         await message.channel.send(msg)
+        return
 
-    elif message.content.startswith('$$ sell'):
+    # sell shares of a stock
+    elif message.content.startswith('$$ sell '):
         msg = message.content.split()
-        symbol = msg[2]
-        amount = int(msg[3])
+        symbol = msg[3]
+        amount = int(msg[2])
         try:
             price = current_price(symbol)
         except IndexError:
-            await message.channel.send("{} is not a stock".format(str.upper(symbol)))
+            await message.channel.send("{0} is not a stock".format(str.upper(symbol)))
             return
         try:
             amount_sold = sell_stock(message.author.id, symbol, amount, price)
-            await message.channel.send("successfully sold {} shares of {}".format(amount_sold, str.upper(symbol)))
+            await message.channel.send("successfully sold {0} shares of {1} for a total of: ${2:.2f}".format(
+                    amount_sold, str.upper(symbol), amount * price))
+
         except NoStockError:
-            await message.channel.send("you have no shares of {}".format(str.upper(symbol)))
+            await message.channel.send("you have no shares of {0}".format(str.upper(symbol)))
             return
 
+    # check available balance
     elif message.content.startswith('$$ balance'):
-        await message.channel.send("your current balance is ${0:.2f}".format(user_balance(message.author.id)))
+        await message.channel.send("money available to trade: ${0:.2f}".format(user_balance(message.author.id)))
+        return
+
+    # check stats
+    elif message.content.startswith('$$ checkstocks') or message.content.startswith('$$ check stocks'):
+        user = message.author.id
+        cursor = owned_stock_cursor(user)
+        total = 0
+        for n in cursor:
+            stock = n.get('stock')
+            amount = n.get('amount')
+            price = current_price(stock)
+            total += amount * price
+            await message.channel.send("you have {0} shares of {1} which is worth: ${2:.2f}".format(
+                amount, str.upper(stock), price * amount))
+
+        await message.channel.send("total value in stocks: ${0:.2f}".format(total))
+        balance = total + user_balance(user)
+        await message.channel.send("total balance: ${0:.2f}".format(balance))
+        return
 
     elif message.content.startswith('$$ embed'):
         print(message)
         await message.channel.send(embed=embedMessage(message))
+        return
 
 client.run(os.getenv('TOKEN'))
