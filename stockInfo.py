@@ -30,7 +30,8 @@ def prev_close_price(symbol):
         data = ticker.history(period='2d')
         return data['Close'][0]
     except:
-        return print("Unexpected error:", sys.exc_info()[0])
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
 
 def current_price(symbol):
@@ -39,14 +40,16 @@ def current_price(symbol):
         data = ticker.history(period='1d')
         return data['Close'][0]
     except:
-        return print("Unexpected error:", sys.exc_info()[0])
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
 
 def one_day_price_change(symbol):
     try:
         change = current_price(symbol) - prev_close_price(symbol)
     except:
-        return print("Unexpected error:", sys.exc_info()[0])
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
     change = round(change, 2)
     if change > 0:
@@ -59,7 +62,8 @@ def change_percent(symbol):
         change = float(one_day_price_change(symbol))
         price = prev_close_price(symbol)
     except:
-        return print("Unexpected error:", sys.exc_info()[0])
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
     percent = change / price
     percent *= 100

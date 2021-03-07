@@ -6,12 +6,14 @@ database = client["mydatabase"]
 balance_collection = database["balance"]
 share_collection = database["shares"]
 
+class NoStockError(Exception):
+    pass
 
 def user_balance(uid):
-    ids = balance_collection.find({'uid': uid}, {'uid': 1, 'balance': 1})
+    entries = balance_collection.find({'uid': uid}, {'uid': 1, 'balance': 1})
 
     # check if user is in collection
-    for n in ids:
+    for n in entries:
         if uid == n.get('uid'):
             return n.get('balance')
 
@@ -42,3 +44,22 @@ def add_stock(uid, stock, shares, price):
         return True
     else:
         return False
+
+
+def sell_stock(uid, stock, shares, price):
+    entries = share_collection.find({'uid': uid, 'stock': stock}, {'uid': 1, 'stock': 1, 'amount': 1})
+
+    for n in entries:
+        # if the user owns the stock
+        if uid == n.get('uid') and stock == n.get('stock'):
+            amount_of_stock = n.get('amount')
+            if amount_of_stock > shares:
+                share_collection.update_one({'uid': uid, 'stock': stock}, {'$inc': {'amount': -shares}})
+                amount_sold = shares
+            # drop the entry if the user sells all shares
+            else:
+                share_collection.delete_one({'uid': uid, 'stock': stock})
+                amount_sold = amount_of_stock
+            balance_collection.update_one({'uid': uid}, {'$inc': {'balance': (price * amount_sold)}})
+            return amount_sold
+    raise NoStockError
