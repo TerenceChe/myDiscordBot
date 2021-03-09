@@ -1,3 +1,4 @@
+import datetime
 import requests
 from bs4 import BeautifulSoup
 import yfinance as yf
@@ -68,3 +69,25 @@ def change_percent(symbol):
     percent = change / price
     percent *= 100
     return round(percent, 2)
+
+def all_info(symbol):
+    price = current_price(symbol)
+    if price is None:
+        return "symbol not found"
+
+    time = datetime.datetime.now()
+    date = datetime.datetime.today().weekday()
+    curr_time = time
+    close_time = time.replace(hour=21, minute=0, second=0, microsecond=0)
+    open_time = time.replace(hour=14, minute=30, second=0, microsecond=0)
+
+    if open_time < curr_time < close_time and date != 6 and date != 5:
+        marketStatus = " (current price)"
+    else:
+        marketStatus = " (price at close)"
+
+    change = one_day_price_change(symbol)
+    percentDiff = change_percent(symbol)
+
+    msg = "{0}: ${1:.2f} {2} \n {3} (%{4})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
+    return msg

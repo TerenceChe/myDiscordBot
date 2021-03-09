@@ -1,7 +1,6 @@
 # https://www.freecodecamp.org/news/create-a-discord-bot-with-python/
 
 from database import *
-import datetime
 from embed import *
 from stockInfo import *
 
@@ -36,31 +35,10 @@ async def on_message(message):
         await message.channel.send(most_loss())
         return
 
-    # TODO: fix/improve how the symbol is parsed
     # check price of a particular stock
     elif message.content.startswith('$$ price '):
         symbol = message.content.split()[2]
-        price = current_price(symbol)
-        if price is None:
-            await message.channel.send("symbol not found")
-            return
-
-        time = datetime.datetime.now()
-        date = datetime.datetime.today().weekday()
-        curr_time = time
-        close_time = time.replace(hour=21, minute=0, second=0, microsecond=0)
-        open_time = time.replace(hour=14, minute=30, second=0, microsecond=0)
-
-        if open_time < curr_time < close_time and date != 6 and date != 5:
-            marketStatus = " (current price)"
-        else:
-            marketStatus = " (price at close)"
-
-        change = one_day_price_change(symbol)
-        percentDiff = change_percent(symbol)
-
-        msg = "{0}: ${1:.2f} {2} \n {3} (%{4})".format(str.upper(symbol), price, marketStatus, change, percentDiff)
-        await message.channel.send(msg)
+        await message.channel.send(all_info(symbol))
         return
 
     # buy shares of a stock
@@ -119,6 +97,28 @@ async def on_message(message):
         balance = total + user_balance(user)
         await message.channel.send("total balance: ${0:.2f}".format(balance))
         return
+
+    elif message.content.startswith('$$ watchlist'):
+        msg = message.content.split()
+        uid = message.author.id
+        if len(msg) == 2:
+            cursor = get_watchlist(uid)
+            if cursor.count() < 1:
+                await message.channel.send("to add stocks to watchlist use command '$$ watchlist add <stock>'")
+            for n in cursor:
+                symbol = n.get('stock')
+                await message.channel.send(all_info(symbol))
+            return
+        elif msg[2] == 'add':
+            stock = msg[3]
+            add_to_watch(uid, stock)
+            await message.channel.send("successfully added {0} to watchlist".format(stock))
+            return
+        elif msg[2] in ['del', 'delete', 'remove']:
+            stock = msg[3]
+            remove_from_watch(uid, stock)
+            await message.channel.send("successfully removed {0} from watchlist".format(stock))
+            return
 
     elif message.content.startswith('$$ embed'):
         print(message)

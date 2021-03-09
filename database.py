@@ -5,6 +5,7 @@ client = pymongo.MongoClient(os.getenv("MONGODB_SERVER"))
 database = client["mydatabase"]
 balance_collection = database["balance"]
 share_collection = database["shares"]
+watchlist_collection = database["watchlist"]
 
 
 class NoStockError(Exception):
@@ -43,8 +44,8 @@ def add_stock(uid, stock, shares, price):
 
         # create a new entry if there is none yet
         else:
-            entry = {"uid": uid, "stock": stock, "amount": shares}
-            share_collection.insert_one(entry)
+            new_entry = {"uid": uid, "stock": stock, "amount": shares}
+            share_collection.insert_one(new_entry)
 
         balance_collection.update_one({'uid': uid}, {'$inc': {'balance': -(price * shares)}})
         return True
@@ -69,3 +70,24 @@ def sell_stock(uid, stock, shares, price):
             balance_collection.update_one({'uid': uid}, {'$inc': {'balance': (price * amount_sold)}})
             return amount_sold
     raise NoStockError
+
+
+def add_to_watch(uid, stock):
+    entries = watchlist_collection.find({'uid': uid, 'stock': stock}, {'uid': 1})
+    if entries.count() > 1:
+        return
+    else:
+        new_entry = {'uid': uid, 'stock': stock}
+        watchlist_collection.insert_one(new_entry)
+        return
+
+
+def remove_from_watch(uid, stock):
+    query = {'uid': uid, 'stock': stock}
+    watchlist_collection.delete_one(query)
+    return
+
+
+# returns a cursor with the corresponding uid
+def get_watchlist(uid):
+    return watchlist_collection.find({'uid': uid}, {'stock': 1})
